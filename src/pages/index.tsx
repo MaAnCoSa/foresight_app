@@ -3,14 +3,14 @@ import ThemeWrapper from '../components/ThemeWrapper';
 import PlayerForm from '../components/PlayerForm';
 import MonsterForm from '../components/MonsterForm';
 import DifficultyDisplay from '../components/DifficultyDisplay';
-import { Player, Monster, DifficultyLevel } from '../types';
+import { Player, Monster, DifficultyLevel, DifficultyNumber } from '../types';
 
 const CombatCalculator: React.FC = () => {
   const [partyLevel, setPartyLevel] = useState<number>(1);
   const [players, setPlayers] = useState<Player[]>([{
     id: 1,
     level: 1,
-    class: 'fighter',
+    class: 2,
     hp: 10,
     ac: 14,
     str: 10,
@@ -36,6 +36,7 @@ const CombatCalculator: React.FC = () => {
   }]);
 
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(null);
+  const [difficultyNum, setDifficultyNum] = useState<DifficultyNumber>(null);
 
   const handlePartyLevelChange = (newLevel: number) => {
     setPartyLevel(newLevel);
@@ -51,7 +52,7 @@ const CombatCalculator: React.FC = () => {
     setPlayers([...players, {
       id: newId,
       level: partyLevel,
-      class: 'fighter',
+      class: 2,
       hp: 10,
       ac: 14,
       str: 10,
@@ -104,18 +105,130 @@ const CombatCalculator: React.FC = () => {
   };
 
   const calculateDifficulty = (): void => {
+    let body : any = {
+      "num_pcs": players.length,
+      "num_monsters": monsters.length,
+      "pc_level": partyLevel
+    }
+
+    for (let i = 1; i < 8; i++) {
+      if (players.length >= i) {
+        body[`pc${i}_hp_max`] = players[i-1]["hp"]
+        body[`pc${i}_ac`] = players[i-1]["ac"]
+        body[`pc${i}_STR`] = players[i-1]["str"]
+        body[`pc${i}_DEX`] = players[i-1]["dex"]
+        body[`pc${i}_CON`] = players[i-1]["con"]
+        body[`pc${i}_INT`] = players[i-1]["int"]
+        body[`pc${i}_WIS`] = players[i-1]["wis"]
+        body[`pc${i}_CHA`] = players[i-1]["cha"]
+        if (i != 1) {
+          body[`pc${i}_class_-`] = 0
+        }
+
+        if (players[i-1]["class"] == 0) {
+          body[`pc${i}_class_barbarian`] = 1
+          body[`pc${i}_class_Bard`] = 0
+          body[`pc${i}_class_FighterStr`] = 0
+        } else if (players[i-1]["class"] == 1) {
+          body[`pc${i}_class_barbarian`] = 0
+          body[`pc${i}_class_Bard`] = 1
+          body[`pc${i}_class_FighterStr`] = 0
+        } else if (players[i-1]["class"] == 2) {
+          body[`pc${i}_class_barbarian`] = 0
+          body[`pc${i}_class_Bard`] = 0
+          body[`pc${i}_class_FighterStr`] = 1
+        }
+        
+      } else {
+        body[`pc${i}_hp_max`] = 0
+        body[`pc${i}_ac`] = 0
+        body[`pc${i}_STR`] = 0
+        body[`pc${i}_DEX`] = 0
+        body[`pc${i}_CON`] = 0
+        body[`pc${i}_INT`] = 0
+        body[`pc${i}_WIS`] = 0
+        body[`pc${i}_CHA`] = 0
+        body[`pc${i}_class_-`] = 1
+        body[`pc${i}_class_barbarian`] = 0
+        body[`pc${i}_class_Bard`] = 0
+        body[`pc${i}_class_FighterStr`] = 0
+      }
+    }
+
+    for (let i = 1; i < 8; i++) {
+      if (monsters.length >= i) {
+        body[`monster${i}_cr`] = monsters[i-1]["cr"]
+        body[`monster${i}_hp_max`] = monsters[i-1]["hp"]
+        body[`monster${i}_ac`] = monsters[i-1]["ac"]
+        body[`monster${i}_STR`] = monsters[i-1]["str"]
+        body[`monster${i}_DEX`] = monsters[i-1]["dex"]
+        body[`monster${i}_CON`] = monsters[i-1]["con"]
+        body[`monster${i}_INT`] = monsters[i-1]["int"]
+        body[`monster${i}_WIS`] = monsters[i-1]["wis"]
+        body[`monster${i}_CHA`] = monsters[i-1]["cha"]
+      } else {
+        body[`monster${i}_cr`] = 0
+        body[`monster${i}_hp_max`] = 0
+        body[`monster${i}_ac`] = 0
+        body[`monster${i}_STR`] = 0
+        body[`monster${i}_DEX`] = 0
+        body[`monster${i}_CON`] = 0
+        body[`monster${i}_INT`] = 0
+        body[`monster${i}_WIS`] = 0
+        body[`monster${i}_CHA`] = 0
+      }
+    }
+
+    console.log(body)
+
+    postData(body)
+
     const totalPlayerLevels = players.reduce((sum, p) => sum + (p.level || 0), 0);
     const totalMonsterCR = monsters.reduce((sum, m) => sum + (m.cr || 0), 0);
     
     const ratio = totalMonsterCR / (totalPlayerLevels / players.length);
     
-    let calculatedDifficulty: DifficultyLevel = 'Easy';
-    if (ratio > 0.5) calculatedDifficulty = 'Medium';
-    if (ratio > 1) calculatedDifficulty = 'Hard';
-    if (ratio > 1.5) calculatedDifficulty = 'Deadly';
-    
-    setDifficulty(calculatedDifficulty);
+    let calculatedDifficulty;
+    if (difficultyNum == 0) {
+      setDifficulty("Very Easy")
+    } else if (difficultyNum == 1) {
+      setDifficulty("Easy")
+    } else if (difficultyNum == 2) {
+      setDifficulty("Medium")
+    } else if (difficultyNum == 3) {
+      setDifficulty("Hard")
+    } else if (difficultyNum == 4) {
+      setDifficulty("Deadly")
+    }    
   };
+
+  async function postData(data: any) {
+    const url: any = process.env.NEXT_PUBLIC_FORESIGHT_API_URL
+    const token: any = process.env.NEXT_PUBLIC_API_KEY
+  
+    console.log("Before fetch")
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'x-api-key': token
+      },
+      body: JSON.stringify(data),
+    }).then((response) => {
+      console.log("Inside fetch")
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const result : any = response.json();
+      console.log(result)
+      setDifficultyNum(result["prediccion"])
+
+      console.log(response.json())
+    });
+
+    console.log("After fetch")    
+  }
 
   return (
     <ThemeWrapper>

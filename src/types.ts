@@ -10,7 +10,7 @@ export type AbilityScores = {
   export type Player = {
     id: number;
     level: number;
-    class: string;
+    class: number;
     hp: number;
     ac: number;
   } & AbilityScores;
@@ -23,4 +23,5 @@ export type AbilityScores = {
     ac: number;
   } & AbilityScores;
   
-  export type DifficultyLevel = 'Easy' | 'Medium' | 'Hard' | 'Deadly' | null;
+  export type DifficultyLevel = 'Very Easy' | 'Easy' | 'Medium' | 'Hard' | 'Deadly' | null;
+  export type DifficultyNumber = number | null;

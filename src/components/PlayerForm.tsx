@@ -48,18 +48,19 @@ const PlayerForm: React.FC<PlayerFormProps> = ({
             className="class-select"
             aria-label={`Player ${player.id} class`}
           >
-            <option value="fighter">Fighter</option>
+            <option value="2">Fighter (STR)</option>
+            {/* <option value="fighterDex">Fighter (DEX)</option>
             <option value="wizard">Wizard</option>
             <option value="rogue">Rogue</option>
-            <option value="cleric">Cleric</option>
-            <option value="barbarian">Barbarian</option>
-            <option value="bard">Bard</option>
-            <option value="druid">Druid</option>
+            <option value="cleric">Cleric</option> */}
+            <option value="0">Barbarian</option>
+            <option value="1">Bard</option>
+            {/* <option value="druid">Druid</option>
             <option value="monk">Monk</option>
             <option value="paladin">Paladin</option>
             <option value="ranger">Ranger</option>
             <option value="sorcerer">Sorcerer</option>
-            <option value="warlock">Warlock</option>
+            <option value="warlock">Warlock</option> */}
           </select>
         </div>
         
